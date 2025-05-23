@@ -1,0 +1,5 @@
+---
+- name: Initialize system environment
+  ansible.builtin.include_tasks:
+    file: base_settings.yml
+  tags: base_settings

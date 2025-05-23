@@ -1,0 +1,16 @@
+---
+- name: Test
+  hosts: all
+  gather_facts: false
+  become: true
+  become_method: su
+  become_user: root
+  tasks:
+    - name: Test with raw module
+      ansible.builtin.raw: echo "Hello from $(hostname)"
+      register: output
+      changed_when: false
+
+    - name: Show output
+      ansible.builtin.debug:
+        var: output.stdout_lines

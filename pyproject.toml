@@ -1,0 +1,11 @@
+[project]
+name = "django-app-deploy"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ansible-runner>=2.4.1",
+    "typer>=0.15.4",
+    "typing-extensions>=4.13.2",
+]
