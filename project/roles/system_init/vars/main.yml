@@ -1,0 +1,16 @@
+---
+# variables associated with this role
+
+packages:
+  - bash-completion
+  - vim
+  - curl
+  - wget
+  - sshpass
+  - git
+  - python3
+  - resolvconf
+  - apt-transport-https
+  - ca-certificates
+  - sudo
+  - systemd-timesyncd

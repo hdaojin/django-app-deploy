@@ -1,0 +1,102 @@
+---
+- name: Replace apt sources
+  ansible.builtin.copy:
+    src: files/sources.list
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+
+- name: Upgrade system
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 36000
+    upgrade: full
+
+- name: Install necessary packages
+  ansible.builtin.apt:
+    pkg: "{{ packages }}"
+    state: present
+
+- name: Autoremove dependency packages that are no longer needed
+  ansible.builtin.apt:
+    autoremove: true
+    purge: true
+
+- name: Set ip address
+  ansible.builtin.template:
+    src: interfaces.j2
+    dest: /etc/network/interfaces
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart networking
+
+# - name: Check if SSH key exists
+#   ansible.builtin.stat:
+#     path: "{{ ssh_key_file }}"
+#   register: ssh_key_stat
+
+- name: Generate SSH key
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    generate_ssh_key: true
+    ssh_key_bits: 4096
+    ssh_key_type: ed25519
+    ssh_key_file: "{{ ssh_key_file }}"
+  # when: not ssh_key_stat.stat.exists
+
+- name: Make ansible user sudoer
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/{{ ansible_user }}
+    content: "{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL"
+    owner: root
+    group: root
+    mode: '0440'
+  when: "ansible_user != 'root'"
+
+- name: Set hostname and update /etc/hosts
+  block:
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ hostname }}"
+        use: systemd
+
+    - name: Update /etc/hosts
+      ansible.builtin.replace:
+        path: /etc/hosts
+        regexp: '^127\.0\.1\.1\s+.*$'
+        replace: "127.0.1.1       {{ hostname }}"
+
+- name: Set SSH configuration
+  ansible.builtin.template:
+    src: sshd-security.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-security.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart sshd
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Set locale
+  ansible.builtin.command:
+    cmd: "localectl set-locale LANG={{ locale }}"
+  changed_when: false
+
+- name: Set NTP configuration
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/timesyncd.conf
+    regexp: '^#?NTP'
+    line: "NTP={{ ntp_servers | join(' ') }}"
+    state: present
+
+- name: Reboot system
+  ansible.builtin.reboot:
+    msg: "Rebooting for system initialization"
+    connect_timeout: 5
+    reboot_timeout: 600
+  when: "inventory_hostname != 'localhost'"

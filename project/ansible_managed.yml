@@ -1,0 +1,35 @@
+---
+
+# Initialize Ansible running environment for Ansible-managed hosts which are not python installed, not sudo configured, and not ssh-key configured.
+- name: Install Ansible running environment
+  hosts: all
+  gather_facts: false
+  remote_user: demo
+  become: true
+  become_method: su
+  become_user: root
+  vars:
+    ssh_key_file: "/home/{{ ansible_user }}/.ssh/id_ed25519"
+    ssh_key_pub_file: "/home/{{ ansible_user }}/.ssh/id_ed25519.pub"
+  tasks:
+    - name: Install Ansible running environment
+      block:
+        - name: Install Python and sudo
+          ansible.builtin.raw: apt install -y python3 sudo
+          register: python_install
+          changed_when: "'will be installed' in python_install.stdout"
+
+        - name: Add ssh public key to authorized_keys
+          ansible.posix.authorized_key:
+            user: "{{ ansible_user }}"
+            key: "{{ lookup('ansible.builtin.file', '{{ ssh_key_pub_file }}') }}"
+          when: "'localhost' not in group_names"
+
+        - name: Make ansible user sudoer
+          ansible.builtin.copy:
+            dest: /etc/sudoers.d/{{ ansible_user }}
+            content: "{{ ansible_user }} ALL=(ALL) NOPASSWD: ALL"
+            owner: root
+            group: root
+            mode: '0440'
+          when: ansible_user != 'root'

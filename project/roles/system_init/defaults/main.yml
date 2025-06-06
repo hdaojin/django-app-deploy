@@ -1,0 +1,12 @@
+---
+# SSH key generation
+ssh_key_file: "/home/{{ ansible_user }}/.ssh/id_ed25519"
+ssh_key_pub_file: "/home/{{ ansible_user }}/.ssh/id_ed25519.pub"
+
+
+# Datatime settings
+timezone: "Asia/Shanghai"
+locale: "zh_CN.UTF-8"
+ntp_servers:
+  - "ntp.aliyun.com"
+  - "cn.pool.ntp.org"

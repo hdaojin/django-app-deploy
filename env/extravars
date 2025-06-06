@@ -1,0 +1,10 @@
+---
+# extra vars provided to the Ansible Process itself. It is highly priority than any other vars.
+# Ansible Runner 收集这个文件中提供的额外变量，并将它们提供给 Ansible 进程本身。此文件可以是 json 或 yaml 格式
+# 就是python程序本身的变量，可以直接引用的变量
+test_var: test
+# ansible_port: 22
+# ansible_user: demo
+# ansible_become: true
+# ansible_become_method: sudo
+# ansible_become_user: root

@@ -1,0 +1,13 @@
+source /etc/network/interfaces.d/*
+
+auto lo
+iface lo inet loopback
+
+allow-hotplug {{ network.interface }}
+iface {{ network.interface }} inet static
+    address {{ network.ipaddress }}
+    gateway {{ network.gateway }}
+    dns-nameservers {{ network.dns | join(' ') }}
+    dns-search {{ network.search }}
+    # post-up iptables-restore < /etc/iptables/rules.v4
+    # post-down iptables-restore < /etc/iptables/rules.v6
