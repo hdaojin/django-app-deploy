@@ -55,7 +55,7 @@ def run_ansible_tasks(
 
 def run_command_playbook(
         executable_cmd: str | None = "ansible-playbook",
-        cmdline_args: list[str] = 'site.yml',
+        cmdline_args: list[str] = ['site.yml'],
 ):
     """
     Run ansible-playbook command with given parameters.
@@ -104,7 +104,10 @@ def cli_run(
         print("[bold red]ERROR[/bold red]: Only one of playbook or role can be specified.")
         raise typer.Exit(code=2)
     
-    run_ansible_tasks(private_data_dir, playbook, role, tags)
+    # parse tags
+    tags_list = [tag.strip() for tag in tags.split(",") if tag.strip()] if tags else None
+    
+    run_ansible_tasks(private_data_dir, playbook, role, tags_list)
 
 
 class AnsibleNodeType(str, Enum):
